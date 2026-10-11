@@ -1,6 +1,6 @@
 # HeartPilot 压测与评测资产
 
-本目录收纳 HeartPilot 关系成长 AI 系统的在线压测脚本、全部实测结果与实验报告，供复现、审计与简历数据溯源使用。
+本目录收纳 HeartPilot 关系成长 AI 系统的在线压测脚本与实验报告，供复现与审计使用。
 
 被测服务：`http://82.157.205.6:8081`（context-path `/api`）
 测试日期：2026-10-09　|　测试机：Windows（Python 3.13，脚本仅标准库，零第三方依赖）
@@ -12,7 +12,7 @@ stress-test/
 ├── heartpilot_stress_test.py   # 压测脚本（四类场景：持续负载 / 突发限流 / SSE TTFT / 解除限流容量）
 ├── HeartPilot压测与评测实验报告.docx  # 实验报告（含容量测试章节与清理 SQL）
 ├── README.md
-└── results/                    # 全部原始数据（JSON 汇总 + CSV 逐请求记录）
+└── results/                    # 压测运行产物（JSON 汇总 + CSV 逐请求），已 gitignore 不入库
 ```
 
 ## 脚本用法
