@@ -1,9 +1,15 @@
 FROM maven:3.9-amazoncorretto-21 AS build
 WORKDIR /workspace
+
+# 阿里云 Maven 镜像：只镜像 central，parent/依赖都从这里拉
+COPY settings.xml /root/.m2/settings.xml
+
+# 依赖层单独一层，配合 cache mount：改代码不会重新下载依赖
 COPY pom.xml .
-RUN mvn -q -DskipTests dependency:go-offline
+RUN --mount=type=cache,target=/root/.m2/repository mvn -q -B -DskipTests dependency:go-offline
+
 COPY src ./src
-RUN mvn -q -Dmaven.test.skip=true package
+RUN --mount=type=cache,target=/root/.m2/repository mvn -q -B -DskipTests package
 
 FROM amazoncorretto:21-alpine
 WORKDIR /app

@@ -1,0 +1,5 @@
+# 产物模式（Dockerfile.deploy）专用 ignore 文件（BuildKit 按 <Dockerfile>.dockerignore 识别）。
+# 构建上下文只保留 dist/ 和 nginx.conf，node_modules 永远不会发给 docker daemon。
+*
+!dist
+!nginx.conf

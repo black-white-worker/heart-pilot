@@ -1,0 +1,4 @@
+# 产物模式（Dockerfile.deploy）专用 ignore 文件（BuildKit 按 <Dockerfile>.dockerignore 识别）。
+# 构建上下文只保留上传的 jar，避免把 src/、旧 target/ 一起发给 docker daemon。
+*
+!target/*.jar

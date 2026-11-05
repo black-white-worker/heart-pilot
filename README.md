@@ -67,7 +67,7 @@
 
 多轮会话 + 知识库增强答疑。左侧会话列表，右侧对话区展示知识库命中状态、参考来源、引用校验结果与 Token 消耗；支持流式输出、重新生成、停止生成。
 
-![AI 答疑页](./docs/screenshots/consult.png)
+![AI 答疑页](docs/screenshots/consult.png)
 
 ### 2. 行动规划（`/planning`）
 

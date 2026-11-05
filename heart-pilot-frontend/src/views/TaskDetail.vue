@@ -827,10 +827,7 @@
                   京东、拼多多可直接查看结果；淘宝首次打开需登录一次（浏览器会记住）。
                 </p>
                 <p v-if="item.payload.searchSource" class="muted search-tip">
-                  <span v-if="item.payload.searchSource === 'duckduckgo'"
-                    >价格与品牌已联网校准（DuckDuckGo 公开网页），价格为参考价</span
-                  >
-                  <span v-else-if="item.payload.searchSource === 'serpapi'"
+                  <span v-if="item.payload.searchSource === 'serpapi'"
                     >价格与品牌已联网校准（付费搜索），价格为参考价</span
                   >
                   <span v-else>搜索增强暂不可用，以上为 AI 基于喜好的推荐</span>

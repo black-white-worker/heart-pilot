@@ -4,7 +4,9 @@ RUN addgroup -S heartpilot \
     && adduser -S heartpilot -G heartpilot \
     && mkdir -p /app/data/files \
     && chown -R heartpilot:heartpilot /app
-COPY target/heart-pilot-backend-0.0.1-SNAPSHOT.jar /app/app.jar
+# 产物模式：jar 由本机 mvn package 生成、部署脚本上传为 target/app.jar。
+# 用通配符而不是写死版本号，pom 升版本不用改 Dockerfile。
+COPY target/*.jar /app/app.jar
 USER heartpilot
 EXPOSE 8123
 ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","/app/app.jar","--spring.profiles.active=prod"]

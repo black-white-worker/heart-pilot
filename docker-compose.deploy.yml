@@ -1,3 +1,5 @@
+# 遗留：早期单机部署（82.157.205.6）用的 compose 覆盖文件，当前生产不再走这条路。
+# 现在的生产部署见 docker-compose.server.yml + deploy/server/redeploy.sh（产物模式）。
 services:
   backend:
     build:

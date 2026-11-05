@@ -151,7 +151,14 @@ const conversations = ref<Conversation[]>([]),
   toast = ref(''),
   scrollEl = ref<HTMLElement | null>(null),
   streamController = ref<any>(null)
-onMounted(loadConversations)
+onMounted(async () => {
+  try {
+    await loadConversations()
+  } catch {
+    // 后端重启/网络抖动时列表可能 502，保留输入框可用，发送时会自动补建会话
+    error.value = '会话列表加载失败，可直接输入内容重试'
+  }
+})
 async function loadConversations() {
   const page = await api.get('/conversations')
   conversations.value = page.content
@@ -163,6 +170,15 @@ async function createConversation() {
   conversations.value.unshift(c)
   await selectConversation(c.id)
 }
+async function ensureConversation(): Promise<number> {
+  const id = activeId.value
+  if (id != null) return id
+  const c = await api.post('/conversations', { title: '新的倾诉' })
+  conversations.value.unshift(c)
+  activeId.value = c.id
+  current.value = c
+  return c.id
+}
 async function selectConversation(id: number) {
   activeId.value = id
   current.value = conversations.value.find((x) => x.id === id) || null
@@ -173,6 +189,16 @@ async function selectConversation(id: number) {
 async function send() {
   const content = draft.value.trim()
   if (!content || generating.value) return
+  // 会话列表加载失败（如后端刚重启）时 activeId 还是 null，
+  // 直接拼 URL 会得到 /conversations/null/... 并被打成 500；这里先补建会话。
+  if (activeId.value == null) {
+    try {
+      await ensureConversation()
+    } catch {
+      error.value = '会话创建失败，请稍后重试'
+      return
+    }
+  }
   draft.value = ''
   error.value = ''
   messages.value.push({

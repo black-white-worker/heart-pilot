@@ -169,22 +169,6 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.37</version>
         </dependency>
-        <!-- 送礼搜索增强：DuckDuckGo HTML 结果页解析 -->
-        <dependency>
-            <groupId>org.jsoup</groupId><artifactId>jsoup</artifactId><version>1.18.3</version>
-        </dependency>
-        <!-- 送礼搜索增强：Guava RateLimiter 全局限流 -->
-        <dependency>
-            <groupId>com.google.guava</groupId><artifactId>guava</artifactId><version>33.4.0-jre</version>
-        </dependency>
-        <!-- 送礼搜索增强：Spring Retry 指数退避重试（版本由 Spring Boot 管理） -->
-        <dependency>
-            <groupId>org.springframework.retry</groupId><artifactId>spring-retry</artifactId>
-        </dependency>
-        <!-- @Retryable 注解切面支持 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>

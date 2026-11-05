@@ -133,6 +133,16 @@ public class AgentTaskServiceImpl implements AgentTaskService {
     /** 当前正在执行的任务 Future 映射（taskId -> Future），用于取消操作中断线程 */
     private final Map<Long, Future<?>> activeFutures = new ConcurrentHashMap<>();
 
+    /**
+     * 每个任务"换一批候选地点"的剩余次数计数（taskId -> 已用次数）。
+     * 进程内 Map 即可：AWAITING_CONFIRMATION 状态用户通常几分钟内操作完，重启后清零可接受；
+     * 不持久化是因为 reshuffle 本身不调外部 API，只是从已缓存候选池重抽，不存在跨实例一致性要求。
+     */
+    private final Map<Long, Integer> reshuffleCount = new ConcurrentHashMap<>();
+
+    /** 单个任务最多允许换几批候选地点，防止误触狂点 */
+    private static final int MAX_RESHUFFLE_PER_TASK = 5;
+
     /** 构造器注入所有依赖。 maxSteps 和 maxTaskRetries 从配置项读取，executor 通过 @Qualifier 指定专用线程池。 */
     public AgentTaskServiceImpl(
             TaskRepository tasks,
@@ -1160,6 +1170,13 @@ public class AgentTaskServiceImpl implements AgentTaskService {
         if (task.getStatus() != AgentTaskStatus.AWAITING_CONFIRMATION) {
             throw ApiException.badRequest("仅在等待确认阶段可换一批候选地点");
         }
+        // 次数限制：每个任务最多换 5 批，防止误触狂点。reshuffle 本身不调外部 API，
+        // 但频繁翻页对用户没意义，候选池就那么大，5 次已经覆盖完所有备选。
+        int used = reshuffleCount.getOrDefault(id, 0);
+        if (used >= MAX_RESHUFFLE_PER_TASK) {
+            throw ApiException.badRequest(
+                    "候选地点已翻完（最多换 " + MAX_RESHUFFLE_PER_TASK + " 次），请确认当前方案或重新规划一次");
+        }
         String poolJson = task.getPlacePoolJson();
         String evidenceJson = task.getJourneyEvidenceJson();
         if (poolJson == null
@@ -1178,6 +1195,8 @@ public class AgentTaskServiceImpl implements AgentTaskService {
                     placeSearch.reshuffleCandidateCards(current, pool, System.nanoTime());
             task.setJourneyEvidenceJson(json.writeValueAsString(reshuffled));
             task.setEvidenceUpdatedAt(Instant.now());
+            // 成功才计数，失败不占名额
+            reshuffleCount.merge(id, 1, Integer::sum);
             return saveTask(task);
         } catch (Exception e) {
             throw ApiException.badRequest("换一批地点失败：" + e.getMessage());

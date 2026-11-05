@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  * 表达型行动富化器（礼物/仪式）。 候选礼物以"AI 分析用户输入后生成的具体商品方向"为主（GiftPlan.ideas）。
  *
  * <p>流水线：基于结构化需求生成差异化关键词池（3 套方案强制不同品类）→ 纯 Java 黑名单过滤 （自动把排除项转为电商搜索排除语法）→ 按关键词调 WebSearchService
- * 搜真实网页摘要 （DuckDuckGo 免费为主、SerpAPI 付费兜底，全失败降级纯 AI）→ LLM 基于摘要校准价格与品牌 → 每个候选附多平台电商跳转链接 + 1-2
+ * 搜真实网页摘要 （searchapi.io，失败降级纯 AI）→ LLM 基于摘要校准价格与品牌 → 每个候选附多平台电商跳转链接 + 1-2
  * 条真实网页参考来源。
  */
 @Service
@@ -72,7 +72,7 @@ public class GiftRitualActionEnricher extends AbstractActionEnricher {
                         (context.task().getObjective() == null
                                 ? ""
                                 : context.task().getObjective()));
-        // 搜索增强：按每组第一个关键词搜真实网页摘要（DuckDuckGo 免费 → SerpAPI 付费兜底 → 纯 AI）
+        // 搜索增强：按每组第一个关键词搜真实网页摘要（searchapi.io → 失败降级纯 AI）
         Map<String, List<WebSearchService.SearchResult>> keywordSources = new LinkedHashMap<>();
         List<ActionLanguageService.GiftSearchEvidence> searchEvidence = new ArrayList<>();
         for (GiftKeywordService.KeywordGroup group : keywordPlan.groups()) {
@@ -119,7 +119,7 @@ public class GiftRitualActionEnricher extends AbstractActionEnricher {
         data.put("steps", gift.steps());
         data.put("giftIdeas", giftIdeas);
         data.put("searchStatus", linked ? "KEYWORD_URLS" : "AI_ONLY");
-        // 搜索增强状态：duckduckgo / serpapi / 空（未搜到，纯 AI）——前端据此展示校准状态小字
+        // 搜索增强状态：serpapi / 空（未搜到，纯 AI）——前端据此展示校准状态小字
         data.put("searchSource", webSearch.lastSource());
         // 付费搜索额度简单提示（额度耗尽时前端可见，未配置付费 key 为空）
         data.put("searchQuotaTip", webSearch.quotaTip());

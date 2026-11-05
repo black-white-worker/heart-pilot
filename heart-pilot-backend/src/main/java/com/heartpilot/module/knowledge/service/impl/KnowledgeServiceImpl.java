@@ -87,7 +87,7 @@ public class KnowledgeServiceImpl implements KnowledgeService {
     /** 是否启用 AI Embedding：DashScope key 未配置时为 false，检索降级为关键词匹配 */
     private final boolean aiEnabled;
 
-    /** Apache Tika 统一抽取 PDF/Word/TXT/Markdown 文本 */
+    /** Apache Tika 统一抽取 PDF/Word/TXT/Markdown 文本 的工具包*/
     private final Tika tika = new Tika();
 
     /**

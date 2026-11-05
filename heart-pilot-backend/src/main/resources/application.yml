@@ -88,14 +88,12 @@ app:
       secret-key: ${MINIO_SECRET_KEY:minioadmin}
       bucket: ${MINIO_BUCKET:heart-pilot}
 search-api.api-key: ${SEARCH_API_KEY:}
-# 送礼链路网页搜索增强（DuckDuckGo 免费为主，searchapi.io 付费兜底）
+# 送礼链路网页搜索增强（searchapi.io 为主，失败降级纯 AI）
 gift-search:
-  duckduckgo:
-    enabled: ${DUCKDUCKGO_ENABLED:true}
-    max-results-per-keyword: ${GIFT_SEARCH_MAX_RESULTS:5}
-    rate-per-minute: ${GIFT_SEARCH_RATE_PER_MINUTE:40}
-    cache-ttl-minutes: ${GIFT_SEARCH_CACHE_TTL_MINUTES:10}
-    request-timeout-millis: ${GIFT_SEARCH_TIMEOUT_MILLIS:6000}
+  max-results-per-keyword: ${GIFT_SEARCH_MAX_RESULTS:5}
+  # 同一关键词命中缓存即不再请求外部搜索，付费额度只按去重后的关键词数消耗
+  cache-ttl-minutes: ${GIFT_SEARCH_CACHE_TTL_MINUTES:720}
+  request-timeout-millis: ${GIFT_SEARCH_TIMEOUT_MILLIS:6000}
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

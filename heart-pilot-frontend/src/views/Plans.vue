@@ -550,6 +550,10 @@ async function create() {
           city: place ? form.city.trim() : '',
           budget: place ? form.budget : null,
           questions: place ? questions : [],
+          // 场所类型多选与"其他"自定义词单独结构化透传，供 LLM 关键词提取器直接取用，
+          // 不再只埋在 contextNotes 文本里被规则切句稀释
+          venueTypes: place ? form.venueTypes : undefined,
+          customVenue: place && form.customVenue ? form.customVenue : undefined,
           goalType: form.goalType || undefined,
           preferredActionKinds: [form.actionKind],
           // 消息行动：渠道/语气/回复期待单独透传，供后端结构化读取；contextNotes 仍保留文本行用于展示

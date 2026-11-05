@@ -69,11 +69,17 @@ public class PlaceSearchServiceImpl implements PlaceSearchService {
     /** 网页搜索工具，补充高德 POI 之外的公开信息 */
     private final WebSearchTool webSearch;
 
-    /** 构造器注入高德 Key 与网页搜索工具。 */
+    /** LLM 地点关键词提取器：把口语诉求翻译成干净的高德 POI 搜索词 */
+    private final PlaceKeywordExtractor keywordExtractor;
+
+    /** 构造器注入高德 Key、网页搜索工具与关键词提取器。 */
     public PlaceSearchServiceImpl(
-            @Value("${AMAP_MAPS_API_KEY:}") String amapKey, WebSearchTool webSearch) {
+            @Value("${AMAP_MAPS_API_KEY:}") String amapKey,
+            WebSearchTool webSearch,
+            PlaceKeywordExtractor keywordExtractor) {
         this.amapKey = amapKey;
         this.webSearch = webSearch;
+        this.keywordExtractor = keywordExtractor;
     }
 
     /** 按主题分组检索地点。 先从目标推断至多 5 个检索主题，每个主题分别查高德 POI + 网页搜索， 用 poiId（缺失时用 name|address）去重后合并。 */
@@ -310,6 +316,11 @@ public class PlaceSearchServiceImpl implements PlaceSearchService {
         // 主线里已有的地点不再作为候选重复出现
         java.util.Set<String> selectedKeys = new java.util.HashSet<>();
         for (Place p : selectedPlaces) selectedKeys.add(placeKey(p));
+        // 上次已经展示过的候选卡片也排除，让"换一批"每次都尽量露出新地点，
+        // 避免 shuffle 后又翻回用户刚看过的卡片（主线带路线除外）。
+        for (MapCard c : current.mapCards()) {
+            if (c.poiId() != null && !c.poiId().isBlank()) selectedKeys.add(c.poiId());
+        }
 
         // 总卡片数按候选池实际大小动态封顶：池小就全展示，池大就封顶 HARD_MAX_CARDS
         int effectiveMax = Math.max(10, Math.min(pool.places().size(), HARD_MAX_CARDS));
@@ -660,11 +671,63 @@ public class PlaceSearchServiceImpl implements PlaceSearchService {
     }
 
     /**
-     * 从用户目标文本推断检索主题列表（最多 MAX_TOPICS 个）。 按标点切句，过滤否定句（"不要/别…"）和纯预算句，归一化口语后归类到
-     * LocalPlaceIntentCatalog， 同标签去重，每个主题附带高德类型码与网页搜索关键词。
+     * 从用户目标文本推断检索主题列表（最多 MAX_TOPICS 个）。
+     *
+     * <p>优先走 LLM 关键词提取：把完整需求串（目标｜问题｜场所偏好｜预算）交给
+     * {@link PlaceKeywordExtractor}，提炼成干净的高德 POI 短词，每个短词直接成为一个
+     * SearchTopic。LLM 不可用或返回空时，回退到原有规则切句（按标点切句 + 否定句过滤 +
+     * LocalPlaceIntentCatalog 归类），保证任何输入都能产出检索主题。
      */
     private List<SearchTopic> inferTopics(String objective) {
         String safeObjective = objective == null ? "" : objective.trim();
+
+        // 第一优先级：LLM 提取的干净关键词，每个词直接作为一个检索主题
+        List<String> llmKeywords = keywordExtractor.extract(safeObjective);
+        if (!llmKeywords.isEmpty()) {
+            List<SearchTopic> llmTopics = new ArrayList<>();
+            for (String kw : llmKeywords) {
+                SearchTopic topic = buildTopicFromKeyword(kw);
+                llmTopics.add(topic);
+                if (llmTopics.size() >= MAX_TOPICS) break;
+            }
+            if (!llmTopics.isEmpty()) {
+                log.info("地点检索使用 LLM 关键词主题：{}",
+                        llmTopics.stream().map(SearchTopic::label).toList());
+                return llmTopics;
+            }
+        }
+
+        // 回退：规则切句归类（旧逻辑）
+        return ruleBasedTopics(safeObjective);
+    }
+
+    /**
+     * 把单个 LLM 关键词包装成 SearchTopic。 用 {@link LocalPlaceIntentCatalog} 归类：命中已知类别时挂上高德类型码做精度过滤；
+     * 未命中按 CUSTOM 动态词处理，关键词原词直接作为高德检索词。
+     */
+    private SearchTopic buildTopicFromKeyword(String keyword) {
+        String label = shorten(keyword, 24);
+        var category = LocalPlaceIntentCatalog.classify(keyword);
+        final String searchWord = keyword;
+        String query =
+                category.map(LocalPlaceIntentCatalog::searchKeywords)
+                        .filter(ks -> !ks.isEmpty())
+                        .map(ks -> ks.get(0))
+                        .orElse(searchWord);
+        return new SearchTopic(
+                label,
+                query,
+                category.map(Enum::name).orElse("CUSTOM"),
+                category.map(LocalPlaceIntentCatalog::amapTypesForRequest).orElseGet(List::of),
+                category.map(LocalPlaceIntentCatalog::searchKeywords)
+                        .orElseGet(() -> List.of(searchWord)));
+    }
+
+    /**
+     * 规则切句回退路径：按标点切句，过滤否定句和纯预算句，归一化口语后归类到
+     * LocalPlaceIntentCatalog，同标签去重。
+     */
+    private List<SearchTopic> ruleBasedTopics(String safeObjective) {
         List<String> clauses =
                 List.of(safeObjective.split("[｜；。！？，,、？?\\n]+")).stream()
                         .filter(value -> !value.trim().matches("^(?:不|不要|别|避免|排除|拒绝|不能).*"))
@@ -678,9 +741,6 @@ public class PlaceSearchServiceImpl implements PlaceSearchService {
             if (intent.isBlank()) intent = clause;
             String label = shorten(intent, 24);
             var category = LocalPlaceIntentCatalog.classify(intent);
-            // 动态提取策略：
-            // - 命中已知类别：用类别预置短词（"景点""网吧""停车场"）作为 keywords，types 做精度过滤
-            // - CUSTOM 动态词（剧本杀/猫咖等新词）：用用户原词搜，不传 types，matchesTopic 放行
             final String searchWord = intent;
             String query =
                     category.map(LocalPlaceIntentCatalog::searchKeywords)

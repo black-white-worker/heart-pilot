@@ -1,7 +1,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# npmmirror 源 + npm 缓存挂载（改代码不重新下载依赖）
+RUN --mount=type=cache,target=/root/.npm \
+    npm config set registry https://registry.npmmirror.com && npm ci
 COPY . .
 RUN npm run build
 FROM nginx:1.27-alpine
