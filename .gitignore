@@ -1,25 +1,50 @@
-### CUSTOM ###
-application-local.yml
+### === 项目自定义 ===
+# 本地敏感配置与运行数据
 .env
+.env.local
+.env.*.local
 !.env.example
-tmp
+application-local.yml
+tmp/
 data/
 legacy-data/
 demo-output/
 
+# 部署打包产物
+*.tar.gz
+*.zip
+!.mvn/wrapper/maven-wrapper.jar
+
+# 压测 / 评测运行产物（脚本和样例保留，结果不入库）
+stress-test/results/
+stress-test/**/*.log
+eval/.cache/
+
+### === Java / Maven ===
 HELP.md
 target/
 **/target/
-**/dist/
-**/node_modules/
-logs/
-*.log
-heart-pilot-deploy.tar.gz
-!.mvn/wrapper/maven-wrapper.jar
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+### === Node / 前端 ===
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/*.local
+
+### === 日志 ===
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+### === IDE: Eclipse / STS ===
 .apt_generated
 .classpath
 .factorypath
@@ -28,21 +53,37 @@ heart-pilot-deploy.tar.gz
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
+### === IDE: IntelliJ IDEA ===
+.idea/
 *.iws
 *.iml
 *.ipr
+out/
 
-### NetBeans ###
+### === IDE: NetBeans ===
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+### === IDE: VS Code ===
+.vscode/*
+!.vscode/extensions.json
+
+### === 操作系统垃圾文件 ===
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+# Linux
+*~
+.directory

@@ -2,7 +2,11 @@
 
 > 面向关系沟通场景的可恢复 AI 行动编排系统：知识增强答疑 + 多类型行动规划
 
-**在线体验：[http://101.201.208.223:8081](http://101.201.208.223:8081)**
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Java](https://img.shields.io/badge/Java-21-orange.svg)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4-green.svg)
+![Vue](https://img.shields.io/badge/Vue-3-42b883.svg)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
 心旅（HeartPilot）帮助用户在关系沟通困扰中，先把问题说清，再把困扰变成可执行、可确认、可恢复的下一步行动。AI 只给建议，决定权始终在用户手里。
 
@@ -22,7 +26,8 @@
 - [可观测性](#十二可观测性)
 - [部署](#十三部署)
 - [安全与数据治理](#十四安全与数据治理)
-- [免责声明](#十五免责声明)
+- [许可证](#十五许可证)
+- [免责声明](#十六免责声明)
 
 ## 一、项目简介
 
@@ -411,6 +416,10 @@ npm run build
 - 提交前检查 `git status` 并使用密钥扫描工具检查当前内容与完整历史；历史中的真实凭据应在团队确认后轮换，具体见 [SECURITY-DATA.md](SECURITY-DATA.md)。
 - 对话安全：安全语境识别 + 问题分流 + 引用校验，未经校验的内容不下发；会话状态只在当前会话内保存，系统不建立跨会话心理画像。
 
-## 十五、免责声明
+## 十五、许可证
+
+本项目基于 [MIT License](LICENSE) 开源，可自由学习、引用与二次开发，请保留原作者署名。
+
+## 十六、免责声明
 
 AI 建议不替代医疗、心理、法律等专业服务。涉及现实人身危险时，请优先离开危险环境并寻求当地紧急或专业援助。

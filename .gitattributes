@@ -9,3 +9,10 @@
 *.css text eol=lf
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+# 二进制图片，禁止任何换行符/文本转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary

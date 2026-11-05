@@ -1,6 +1,0 @@
-scenario,user,endpoint,status,latency_ms,ok,detail
-sse_stream_ttft,0,messages/stream,200,8481.2,True,ttft_ms=8481
-sse_stream_ttft,1,messages/stream,200,670.7,True,ttft_ms=671
-sse_stream_ttft,2,messages/stream,200,597.1,True,ttft_ms=597
-sse_stream_ttft,3,messages/stream,200,541.1,True,ttft_ms=541
-sse_stream_ttft,4,messages/stream,200,889.2,True,ttft_ms=889
