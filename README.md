@@ -2,6 +2,8 @@
 
 > 面向关系沟通场景的可恢复 AI 行动编排系统：知识增强答疑 + 多类型行动规划
 
+**在线体验：[http://101.201.208.223:8081](http://101.201.208.223:8081)**
+
 心旅（HeartPilot）帮助用户在关系沟通困扰中，先把问题说清，再把困扰变成可执行、可确认、可恢复的下一步行动。AI 只给建议，决定权始终在用户手里。
 
 ## 目录
@@ -65,25 +67,25 @@
 
 多轮会话 + 知识库增强答疑。左侧会话列表，右侧对话区展示知识库命中状态、参考来源、引用校验结果与 Token 消耗；支持流式输出、重新生成、停止生成。
 
-![AI 答疑页](docs/screenshots/consult.png)
+![AI 答疑页](./docs/screenshots/consult.png)
 
 ### 2. 行动规划（`/planning`）
 
 新建 Agent 任务：填写任务名称、目标与约束，选择规划目标与行动类型（地点见面需补充省市、预算、参与人数等约束），并可设置明确边界（不希望计划做什么）。
 
-![行动规划页](docs/screenshots/planning.png)
+![行动规划页](./docs/screenshots/planning.png)
 
 ### 3. 我的计划（`/plans`）
 
 任务列表页：展示任务标题、目标、当前进度（x/7 步）、状态（运行中 / 等待确认 / 已完成等），支持按状态筛选与删除记录。
 
-![我的计划页](docs/screenshots/plans.png)
+![我的计划页](./docs/screenshots/plans.png)
 
 ### 4. 知识库管理（`/admin/knowledge`）
 
 仅管理员可见。上传 Markdown / TXT / PDF / Word 文档（单文件 ≤ 30 MB），按"文本解析 → 内容清洗 → 分段切片 → 关键词补充 → Embedding → PGVector"流水线处理后，通过审核即进入检索池。
 
-![知识库管理页](docs/screenshots/knowledge.png)
+![知识库管理页](./docs/screenshots/knowledge.png)
 
 ## 四、系统架构
 
