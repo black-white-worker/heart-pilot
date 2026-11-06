@@ -121,6 +121,26 @@ foreach ($relative in $UploadFiles) {
     Copy-Item -LiteralPath $source -Destination $destination -Force
 }
 
+# Optional file: without it the normal (idle) deploy still works, PROFILE=bench
+# just cannot be used on the server. Warn instead of throwing.
+# NOTE: keep this block ASCII. This script is stored as BOM-less UTF-8, so Windows
+# PowerShell 5.1 decodes it as ANSI/GBK; a multibyte character whose trailing byte
+# lands on the newline swallows that newline and breaks parsing of the next line.
+$OptionalUploadFiles = @(
+    "docker-compose.bench.yml"
+)
+foreach ($relative in $OptionalUploadFiles) {
+    $source = Join-Path $ProjectRoot $relative
+    if (Test-Path -LiteralPath $source) {
+        $destination = Join-Path $Stage $relative
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+        Copy-Item -LiteralPath $source -Destination $destination -Force
+    }
+    else {
+        Write-Warning "Optional file missing: $relative (PROFILE=bench will not work on the server)"
+    }
+}
+
 $Knowledge = Join-Path $ProjectRoot "knowledge"
 if (-not (Test-Path -LiteralPath $Knowledge)) {
     throw "knowledge/ is missing (backend mounts it read-only at /app/knowledge)."

@@ -9,4 +9,10 @@ RUN addgroup -S heartpilot \
 COPY target/*.jar /app/app.jar
 USER heartpilot
 EXPOSE 8123
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","/app/app.jar","--spring.profiles.active=prod"]
+# JVM 参数由 compose 注入的 JAVA_OPTS 决定，镜像里不再写死。
+# 原来固定 -XX:MaxRAMPercentage=75：640M 配额下堆约 480M，而 compose 注释自己估的 RSS 约 600M，
+# 已经快到容器上限，这台机器还同时挂着另外两个栈。改成显式 -Xmx 之后堆和配额各管各的，
+# 换档（idle / bench）只需要改环境变量，不用重建镜像。
+# 默认值仍是 75%，所以不带 compose 直接 docker run 时行为和以前一致。
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75"
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE:-prod}"]

@@ -1,0 +1,27 @@
+# =====================================================================
+# heart-pilot 压测叠层（bench overlay）
+# 只对 heart-pilot 单项目打流量时叠加，平时（三个栈同时挂着）不要带它：
+#   docker compose -f docker-compose.server.yml -f docker-compose.bench.yml \
+#     --env-file .env.prod up -d --no-deps hp-backend
+#   测完还原：去掉 -f docker-compose.bench.yml 再 up 一次
+#
+# 换档会重建 hp-backend（JVM 参数变了，reload 不够），一次 45~90 秒，别在演示中途切。
+# memswap_limit == mem_limit 表示本容器禁用 swap：压测要的是纯内存延迟，
+# p99 里混进换页就是废数据；代价是知识导入/批量向量化不再有溢出空间，测时别同时灌知识库。
+# =====================================================================
+name: hp-app
+
+services:
+  hp-backend:
+    environment:
+      # 320M 堆：够住一轮 embedding 批处理的中间对象；
+      # 比演示档多出的 128M 是从 videonest 之外借的，所以只在本栈被测时启用。
+      JAVA_OPTS: >-
+        -Xms128m -Xmx320m
+        -XX:MaxMetaspaceSize=160m
+        -XX:ReservedCodeCacheSize=64m
+        -Xss512k
+        -XX:+ExitOnOutOfMemoryError
+    mem_limit: 576m
+    memswap_limit: 576m
+    mem_reservation: 384m
